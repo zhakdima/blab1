@@ -1,8 +1,9 @@
 #include "Worker.h"
 
 #include <cmath>
+#include <iomanip>
+#include <limits>
 #include <stdexcept>
-
 namespace {
     void checkText(const std::string& value, const std::string& fieldName) {
         if (value.find_first_not_of(" \t\r\n") == std::string::npos)
@@ -84,7 +85,42 @@ void Worker::write(std::ostream& out) const {
         << "; заработная плата: " << salary_ << "; адрес: " << address_
         << "; телефон: " << phone_ << "]";
 }
+void Worker::saveData(std::ostream& out) const {
+    out << std::quoted(fullName_) << '\n'
+        << std::quoted(position_) << '\n'
+        << std::setprecision(std::numeric_limits<double>::max_digits10)
+        << salary_ << '\n'
+        << std::quoted(address_) << '\n'
+        << std::quoted(phone_) << '\n';
 
+    if (!out)
+        throw std::runtime_error("Ошибка сохранения данных работника.");
+}
+
+void Worker::loadData(std::istream& in) {
+    std::string fullName, position, address, phone;
+    double salary = 0.0;
+
+    if (!(in >> std::quoted(fullName)
+        >> std::quoted(position)
+        >> salary
+        >> std::quoted(address)
+        >> std::quoted(phone)))
+        throw std::runtime_error("Ошибка чтения данных работника из файла.");
+
+    if (fullName.find_first_not_of(" \t\r\n") == std::string::npos ||
+        position.find_first_not_of(" \t\r\n") == std::string::npos ||
+        address.find_first_not_of(" \t\r\n") == std::string::npos ||
+        phone.find_first_not_of(" \t\r\n") == std::string::npos ||
+        !std::isfinite(salary) || salary < 0.0)
+        throw std::runtime_error("Некорректные данные работника в файле.");
+
+    fullName_ = fullName;
+    position_ = position;
+    salary_ = salary;
+    address_ = address;
+    phone_ = phone;
+}
 FactoryItem* Worker::clone() const {
     return new Worker(*this);
 }

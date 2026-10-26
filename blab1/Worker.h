@@ -11,6 +11,8 @@ private:
     std::string phone_;
 
 public:
+    void saveData(std::ostream& out) const override;
+    void loadData(std::istream& in) override;
     Worker();
     Worker(const std::string& fullName, const std::string& position, double salary,
         const std::string& address, const std::string& phone);

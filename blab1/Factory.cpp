@@ -3,6 +3,13 @@
 #include <iostream>
 #include <stdexcept>
 #include <utility>
+#include "Car.h"
+#include "Furniture.h"
+#include "Worker.h"
+
+#include <fstream>
+#include <iomanip>
+
 
 Factory::Factory() : name_("Фабрика"), items_(nullptr), count_(0) {
     std::cout << "Вызван конструктор без параметров: Factory\n";
@@ -154,4 +161,106 @@ void Factory::removeByType(const std::string& type, int position) {
     items_ = reduced;
     --count_;
     std::cout << "Запись удалена.\n";
+}
+void Factory::saveToFile(const std::string& fileName) const {
+    std::ofstream file(fileName);
+
+    if (!file) {
+        throw std::runtime_error(
+            "Не удалось открыть файл для сохранения."
+        );
+    }
+
+    file << "FACTORY_DATA 1\n";
+    file << std::quoted(name_) << '\n';
+    file << count_ << '\n';
+
+    for (std::size_t i = 0; i < count_; ++i) {
+        file << std::quoted(items_[i]->getType()) << '\n';
+        items_[i]->saveData(file);
+    }
+
+    if (!file) {
+        throw std::runtime_error(
+            "Ошибка при записи данных фабрики в файл."
+        );
+    }
+
+    std::cout << "Данные фабрики сохранены в файл: "
+        << fileName << '\n';
+}
+void Factory::loadFromFile(const std::string& fileName) {
+    std::ifstream file(fileName);
+
+    if (!file) {
+        throw std::runtime_error(
+            "Не удалось открыть файл для загрузки."
+        );
+    }
+
+    std::string signature;
+    int version = 0;
+
+    if (!(file >> signature >> version) ||
+        signature != "FACTORY_DATA" || version != 1) {
+        throw std::runtime_error(
+            "Неверный формат файла фабрики."
+        );
+    }
+
+    std::string loadedName;
+    std::size_t loadedCount = 0;
+
+    if (!(file >> std::quoted(loadedName) >> loadedCount) ||
+        loadedCount > 1000000) {
+        throw std::runtime_error(
+            "Не удалось прочитать название или количество записей."
+        );
+    }
+
+    // Пока загружаем данные во временный объект.
+    Factory loadedFactory(loadedName);
+
+    for (std::size_t i = 0; i < loadedCount; ++i) {
+        std::string type;
+
+        if (!(file >> std::quoted(type))) {
+            throw std::runtime_error(
+                "Не удалось прочитать тип очередной записи."
+            );
+        }
+
+        FactoryItem* item = nullptr;
+
+        if (type == "Мебель") {
+            item = new Furniture();
+        }
+        else if (type == "Работник") {
+            item = new Worker();
+        }
+        else if (type == "Машина") {
+            item = new Car();
+        }
+        else {
+            throw std::runtime_error(
+                "В файле обнаружен неизвестный тип объекта: " + type
+            );
+        }
+
+        try {
+            item->loadData(file);
+            loadedFactory.add(item);
+            item = nullptr;
+        }
+        catch (...) {
+            delete item;
+            throw;
+        }
+    }
+
+    // Заменяем текущие данные только после успешной загрузки.
+    swap(loadedFactory);
+
+    std::cout << "Данные фабрики восстановлены из файла: "
+        << fileName << '\n';
 }

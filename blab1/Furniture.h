@@ -13,6 +13,8 @@ private:
     double cost_;
 
 public:
+    void saveData(std::ostream& out) const override;
+    void loadData(std::istream& in) override;
     Furniture();
     Furniture(const std::string& furnitureType, double height, double width,
         double depth, const std::string& color,

@@ -9,6 +9,8 @@ private:
     std::string registrationNumber_;
 
 public:
+    void saveData(std::ostream& out) const override;
+    void loadData(std::istream& in) override;
     Car();
     Car(const std::string& brand, const std::string& model,
         const std::string& registrationNumber);

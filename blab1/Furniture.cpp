@@ -1,5 +1,6 @@
 #include "Furniture.h"
-
+#include <iomanip>
+#include <limits>
 #include <cmath>
 #include <stdexcept>
 
@@ -120,7 +121,45 @@ void Furniture::write(std::ostream& out) const {
         << "; цвет: " << color_ << "; материал: " << material_
         << "; стоимость: " << cost_ << "]";
 }
+void Furniture::saveData(std::ostream& out) const {
+    out << std::quoted(furnitureType_) << '\n'
+        << std::setprecision(std::numeric_limits<double>::max_digits10)
+        << height_ << ' ' << width_ << ' ' << depth_ << '\n'
+        << std::quoted(color_) << '\n'
+        << std::quoted(material_) << '\n'
+        << cost_ << '\n';
 
+    if (!out)
+        throw std::runtime_error("Ошибка сохранения данных мебели.");
+}
+
+void Furniture::loadData(std::istream& in) {
+    std::string furnitureType, color, material;
+    double height, width, depth, cost;
+
+    if (!(in >> std::quoted(furnitureType)
+        >> height >> width >> depth
+        >> std::quoted(color)
+        >> std::quoted(material) >> cost))
+        throw std::runtime_error("Ошибка чтения данных мебели.");
+
+    if (furnitureType.find_first_not_of(" \t\r\n") == std::string::npos ||
+        color.find_first_not_of(" \t\r\n") == std::string::npos ||
+        material.find_first_not_of(" \t\r\n") == std::string::npos ||
+        !std::isfinite(height) || height <= 0 ||
+        !std::isfinite(width) || width <= 0 ||
+        !std::isfinite(depth) || depth <= 0 ||
+        !std::isfinite(cost) || cost < 0)
+        throw std::runtime_error("Некорректные данные мебели в файле.");
+
+    furnitureType_ = furnitureType;
+    height_ = height;
+    width_ = width;
+    depth_ = depth;
+    color_ = color;
+    material_ = material;
+    cost_ = cost;
+}
 FactoryItem* Furniture::clone() const {
     return new Furniture(*this);
 }

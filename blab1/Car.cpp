@@ -1,7 +1,7 @@
 #include "Car.h"
 
+#include <iomanip>
 #include <stdexcept>
-
 namespace {
     void checkCarText(const std::string& value, const std::string& fieldName) {
         if (value.find_first_not_of(" \t\r\n") == std::string::npos)
@@ -67,7 +67,32 @@ void Car::write(std::ostream& out) const {
     out << "Машина [марка: " << brand_ << "; модель: " << model_
         << "; гос. номер: " << registrationNumber_ << "]";
 }
+void Car::saveData(std::ostream& out) const {
+    out << std::quoted(brand_) << '\n'
+        << std::quoted(model_) << '\n'
+        << std::quoted(registrationNumber_) << '\n';
 
+    if (!out)
+        throw std::runtime_error("Ошибка сохранения данных машины.");
+}
+
+void Car::loadData(std::istream& in) {
+    std::string brand, model, registrationNumber;
+
+    if (!(in >> std::quoted(brand)
+        >> std::quoted(model)
+        >> std::quoted(registrationNumber)))
+        throw std::runtime_error("Ошибка чтения данных машины из файла.");
+
+    if (brand.find_first_not_of(" \t\r\n") == std::string::npos ||
+        model.find_first_not_of(" \t\r\n") == std::string::npos ||
+        registrationNumber.find_first_not_of(" \t\r\n") == std::string::npos)
+        throw std::runtime_error("Некорректные данные машины в файле.");
+
+    brand_ = brand;
+    model_ = model;
+    registrationNumber_ = registrationNumber;
+}
 FactoryItem* Car::clone() const {
     return new Car(*this);
 }

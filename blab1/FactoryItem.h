@@ -21,6 +21,8 @@ public:
     virtual void read() = 0;
     virtual void edit() = 0;
     virtual void write(std::ostream& out) const = 0;
+    virtual void saveData(std::ostream& out) const = 0;
+    virtual void loadData(std::istream& in) = 0;
     virtual FactoryItem* clone() const = 0;
 
     void print() const;

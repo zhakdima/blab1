@@ -32,5 +32,7 @@ public:
     void showType(const std::string& type) const;
     void editByType(const std::string& type, int position);
     void removeByType(const std::string& type, int position);
+    void saveToFile(const std::string& fileName) const;
+    void loadFromFile(const std::string& fileName);
 };
 
